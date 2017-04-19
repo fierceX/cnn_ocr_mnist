@@ -33,13 +33,13 @@ def get_ocrnet():
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim = 0)
     return mx.symbol.SoftmaxOutput(data = fc2, name = "softmax")
 
-if __name__ == '__main__':
-    
+def predict():
     (lable,image) = read_data('train-labels-idx1-ubyte.gz','train-images-idx3-ubyte.gz')
 
     (num,img) = gen_saplei(60000,image)
 
-    cv2.imwrite("img.jpg",img)
+    imgw = 255 - img
+    cv2.imwrite("img.jpg",imgw)
 
     img = np.multiply(img, 1 / 255.0)
     img = img.reshape(1,28,84)
@@ -63,4 +63,9 @@ if __name__ == '__main__':
     line = ''
     for i in range(probs.shape[0]):
         line += str(np.argmax(probs[i]))
+    return line
+
+if __name__ == '__main__':
+    
+    line = predict()
     print 'predicted: ' + line
