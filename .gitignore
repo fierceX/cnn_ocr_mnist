@@ -88,7 +88,7 @@ ENV/
 # Rope project settings
 .ropeproject
 
-.gz
-.jpg
-.json
-.params
+*.gz
+*.jpg
+*.json
+*.params
