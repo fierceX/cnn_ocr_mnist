@@ -19,15 +19,16 @@ head = '%(asctime)-15s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=head)
 
 
-
-def read_data(label_url,image_url):
+def read_data(label_url, image_url):
     with gzip.open(label_url) as flbl:
         magic, num = struct.unpack(">II", flbl.read(8))
         label = np.fromstring(flbl.read(), dtype=np.int8)
     with gzip.open(image_url, 'rb') as fimg:
         magic, num, rows, cols = struct.unpack(">IIII", fimg.read(16))
-        image = np.fromstring(fimg.read(), dtype=np.uint8).reshape(len(label), rows, cols)
+        image = np.fromstring(fimg.read(), dtype=np.uint8).reshape(
+            len(label), rows, cols)
     return (label, image)
+
 
 class OCRBatch(object):
     def __init__(self, data_names, data, label_names, label):
@@ -45,37 +46,8 @@ class OCRBatch(object):
         return [(n, x.shape) for n, x in zip(self.label_names, self.label)]
 
 
-def gen_rand(num):
-    buf = [random.randint(0,num-1) for i in range(3)]
-    return buf
-
-def get_img(num,image):
-    img = np.hstack((image[x] for x in num))
-    return img
-    
-
-
-def get_label(num, lable):
-    a = [lable[int(x)] for x in num]
-    return np.array(a)
-
-
-def gen_sample(n, image, width, height):
-    num = gen_rand(n)
-    img = get_img(num,image)
-    img = np.multiply(img, 1 / 255.0)
-    img = img.reshape(1,height,width)
-    return (num, img)
-
-
-def gen_saplei(n, image):
-    num = gen_rand(n)
-    img = get_img(num,image)
-    return (num, img)
-
-
 class OCRIter(mx.io.DataIter):
-    def __init__(self, count, batch_size, num_label, height, width, lable ,image):
+    def __init__(self, count, batch_size, num_label, height, width, lable, image):
         super(OCRIter, self).__init__()
 
         self.batch_size = batch_size
@@ -86,15 +58,19 @@ class OCRIter(mx.io.DataIter):
         self.provide_label = [('softmax_label', (self.batch_size, num_label))]
         self.lable = lable
         self.image = image
+        self.num_label = num_label
 
     def __iter__(self):
         for k in range(self.count / self.batch_size):
             data = []
             label = []
             for i in range(self.batch_size):
-                num, img = gen_sample(self.count,self.image,self.width, self.height)
-                data.append(img)
-                label.append(get_label(num,self.lable))
+                num = [random.randint(0, self.count - 1)
+                       for i in range(self.num_label)]
+                img = np.multiply(
+                    np.hstack((self.image[x] for x in num)), 1 / 255.0)
+                data.append(img.reshape(1, self.height, self.width))
+                label.append(np.array([self.lable[x] for x in num]))
 
             data_all = [mx.nd.array(data)]
             label_all = [mx.nd.array(label)]
@@ -160,9 +136,9 @@ def Accuracy(label, pred):
 
 if __name__ == '__main__':
     network = get_ocrnet()
-    shape = {"data" : (8, 1, 28, 84),"softmax_label" : (8,3)}
-    g = mx.viz.plot_network(network,shape=shape)
-    g.render(filename='net',cleanup=True)
+    shape = {"data": (8, 1, 28, 84), "softmax_label": (8, 3)}
+    g = mx.viz.plot_network(network, shape=shape)
+    g.render(filename='net', cleanup=True)
 
     devs = [mx.cpu(i) for i in range(1)]
 
@@ -170,11 +146,14 @@ if __name__ == '__main__':
 
     model = mx.mod.Module(network, context=devs)
 
-    (train_lable,train_image) = read_data('train-labels-idx1-ubyte.gz','train-images-idx3-ubyte.gz')
-    (test_lable,test_image) = read_data('t10k-labels-idx1-ubyte.gz','t10k-images-idx3-ubyte.gz')
+    (train_lable, train_image) = read_data(
+        'train-labels-idx1-ubyte.gz', 'train-images-idx3-ubyte.gz')
+    (test_lable, test_image) = read_data(
+        't10k-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz')
 
     batch_size = 8
-    data_train = OCRIter(60000, batch_size, 3, 28,84 , train_lable,train_image)
+    data_train = OCRIter(60000, batch_size, 3, 28,
+                         84, train_lable, train_image)
     data_test = OCRIter(5000, batch_size, 3, 28, 84, test_lable, test_image)
 
     model.fit(
@@ -183,7 +162,7 @@ if __name__ == '__main__':
         num_epoch=1,
         optimizer='sgd',
         eval_metric=Accuracy,
-        arg_params = arg_params,
+        arg_params=arg_params,
         initializer=mx.init.Xavier(factor_type="in", magnitude=2.34),
         optimizer_params={'learning_rate': 0.001, 'wd': 0.00001},
         batch_end_callback=mx.callback.Speedometer(batch_size, 50),
