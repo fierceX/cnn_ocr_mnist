@@ -12,11 +12,14 @@ print                               # blank line, end of headers
 print "<body bgcolor=\"#F5F5DC\">"
 print "<p>Handwritten numeral recognition based on convolutional neural network </p>"
 print '''
+<p> input image </p>
 <IMG src="../img.jpg"/>
 <form name="input" action="post.py" method="post">
+<br>
 <input type="submit" value="Next">
+<br>
 '''
-print "<p>" + repr(predict(SetImage())) + "</p>"
+print "<p> Results in : " + repr(predict(SetImage())) + "</p>"
 
 for i in range(4):
     print "<p> convolutional "+str(i)+" layer :</p>"
