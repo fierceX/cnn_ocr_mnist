@@ -38,7 +38,7 @@ def get_ocrnet():
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
     softmax = mx.symbol.SoftmaxOutput(data=fc2, name="softmax")
 
-    out = mx.symbol.Group([softmax, conv4])
+    out = mx.symbol.Group([softmax, conv1,conv2,conv3,conv4])
 
     return out
 
@@ -70,7 +70,7 @@ def ReadImage():
 
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 2)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 1)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
@@ -82,11 +82,25 @@ def predict(img):
     out = mod.get_outputs()
     prob = out[0].asnumpy()
     pool4out = out[1].asnumpy()
-    for i in range(np.shape(pool4out[0])[0]):
-        p4 = pool4out[0][i]
-        p4 = p4.reshape(13,69)
-        p4 = np.multiply(p4,255)
-        cv2.imwrite('p4'+str(i)+'.jpg',p4)
+
+    for n in range(4):
+        cnnout = out[n+1].asnumpy()
+        width = int(np.shape(cnnout[0])[1])
+        height = int(np.shape(cnnout[0])[2])
+        cimg = np.zeros((width*8+80,height*4+40),dtype=float)
+        cimg = cimg+255
+        k = 0
+        for i in range(4):
+            for j in range(8):
+                cg = cnnout[0][k]
+                cg = cg.reshape(width,height)
+                cg = np.multiply(cg,255)
+                k=k+1
+                gm = np.ones((width+10,height+10),dtype=float)
+                gm = gm +255
+                gm[0:width,0:height] = cg
+                cimg[j*(width+10):(j+1)*(width+10),i*(height+10):(i+1)*(height+10)] = gm
+        cv2.imwrite("c"+str(n)+".jpg",cimg)
 
     line = ''
     for i in range(prob.shape[0]):

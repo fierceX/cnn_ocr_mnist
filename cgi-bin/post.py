@@ -18,6 +18,8 @@ print '''
 '''
 print "<p>" + repr(predict(SetImage())) + "</p>"
 
-for i in range(32):
-    print "<IMG src=\"../p4"+str(i)+".jpg\"/>"
+for i in range(4):
+    print "<p> convolutional "+str(i)+" layer :</p>"
+    print "<IMG src=\"../c"+str(i)+".jpg\"/><br>"
+    
 print "</body>"
