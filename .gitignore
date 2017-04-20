@@ -92,3 +92,4 @@ ENV/
 *.jpg
 *.json
 *.params
+*.pdf
