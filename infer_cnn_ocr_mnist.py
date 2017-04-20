@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, "../../python")
 import mxnet as mx
 import numpy as np
 import cv2
@@ -47,9 +45,9 @@ def get_ocrnet():
 
 def SetImage():
     (lable, image) = read_data(
-        'train-labels-idx1-ubyte.gz', 'train-images-idx3-ubyte.gz')
+        't10k-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz')
 
-    num = [random.randint(0, 60000 - 1)
+    num = [random.randint(0, 5000 - 1)
            for i in range(3)]
 
     img = np.hstack((image[x] for x in num))
@@ -72,7 +70,7 @@ def ReadImage():
 
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 1)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 2)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
@@ -83,7 +81,12 @@ def predict(img):
     mod.forward(Batch([mx.nd.array(img)]))
     out = mod.get_outputs()
     prob = out[0].asnumpy()
-    #conv4out = out[1].asnumpy()
+    pool4out = out[1].asnumpy()
+    for i in range(np.shape(pool4out[0])[0]):
+        p4 = pool4out[0][i]
+        p4 = p4.reshape(13,69)
+        p4 = np.multiply(p4,255)
+        cv2.imwrite('p4'+str(i)+'.jpg',p4)
 
     line = ''
     for i in range(prob.shape[0]):
