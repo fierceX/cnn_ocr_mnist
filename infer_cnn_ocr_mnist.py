@@ -38,7 +38,7 @@ def get_ocrnet():
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
     softmax = mx.symbol.SoftmaxOutput(data=fc2, name="softmax")
 
-    out = mx.symbol.Group([softmax, conv1,conv2,conv3,conv4])
+    out = mx.symbol.Group([softmax, conv1, conv2, conv3, conv4])
 
     return out
 
@@ -84,23 +84,24 @@ def predict(img):
     pool4out = out[1].asnumpy()
 
     for n in range(4):
-        cnnout = out[n+1].asnumpy()
+        cnnout = out[n + 1].asnumpy()
         width = int(np.shape(cnnout[0])[1])
         height = int(np.shape(cnnout[0])[2])
-        cimg = np.zeros((width*8+80,height*4+40),dtype=float)
-        cimg = cimg+255
+        cimg = np.zeros((width * 8 + 80, height * 4 + 40), dtype=float)
+        cimg = cimg + 255
         k = 0
         for i in range(4):
             for j in range(8):
                 cg = cnnout[0][k]
-                cg = cg.reshape(width,height)
-                cg = np.multiply(cg,255)
-                k=k+1
-                gm = np.ones((width+10,height+10),dtype=float)
-                gm = gm +255
-                gm[0:width,0:height] = cg
-                cimg[j*(width+10):(j+1)*(width+10),i*(height+10):(i+1)*(height+10)] = gm
-        cv2.imwrite("c"+str(n)+".jpg",cimg)
+                cg = cg.reshape(width, height)
+                cg = np.multiply(cg, 255)
+                k = k + 1
+                gm = np.ones((width + 10, height + 10), dtype=float)
+                gm = gm + 255
+                gm[0:width, 0:height] = cg
+                cimg[j * (width + 10):(j + 1) * (width + 10), i *
+                     (height + 10):(i + 1) * (height + 10)] = gm
+        cv2.imwrite("c" + str(n) + ".jpg", cimg)
 
     line = ''
     for i in range(prob.shape[0]):
