@@ -4,7 +4,7 @@ import cv2
 import random
 from io import BytesIO
 from collections import namedtuple
-from cnn_ocr_mnist import read_data , Get_image_lable
+from cnn_ocr_mnist import read_data, Get_image_lable
 import random
 
 
@@ -49,7 +49,8 @@ def SetImage():
     num = [random.randint(0, 5000 - 1)
            for i in range(3)]
 
-    img, _ = Get_image_lable(np.hstack((image[x] for x in num)), np.array([lable[x] for x in num]))
+    img, _ = Get_image_lable(
+        np.hstack((image[x] for x in num)), np.array([lable[x] for x in num]))
     imgw = 255 - img
     cv2.imwrite("img.jpg", imgw)
     img = np.multiply(img, 1 / 255.0)
@@ -79,7 +80,6 @@ def predict(img):
     mod.forward(Batch([mx.nd.array(img)]))
     out = mod.get_outputs()
     prob = out[0].asnumpy()
-    pool4out = out[1].asnumpy()
 
     for n in range(4):
         cnnout = out[n + 1].asnumpy()
@@ -103,7 +103,8 @@ def predict(img):
 
     line = ''
     for i in range(prob.shape[0]):
-        line += str(np.argmax(prob[i]) if int(np.argmax(prob[i]))!=10 else 'x')
+        line += str(np.argmax(prob[i])
+                    if int(np.argmax(prob[i])) != 10 else ' ')
     return line
 
 
