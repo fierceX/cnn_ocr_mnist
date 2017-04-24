@@ -4,7 +4,7 @@ import cv2
 import random
 from io import BytesIO
 from collections import namedtuple
-from cnn_ocr_mnist import read_data
+from cnn_ocr_mnist import read_data , Get_image_lable
 import random
 
 
@@ -32,9 +32,9 @@ def get_ocrnet():
 
     flatten = mx.symbol.Flatten(data=relu4)
     fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=256)
-    fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
-    fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
-    fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
+    fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
     softmax = mx.symbol.SoftmaxOutput(data=fc2, name="softmax")
 
@@ -46,12 +46,10 @@ def get_ocrnet():
 def SetImage():
     (lable, image) = read_data(
         't10k-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz')
-
     num = [random.randint(0, 5000 - 1)
            for i in range(3)]
 
-    img = np.hstack((image[x] for x in num))
-
+    img, _ = Get_image_lable(np.hstack((image[x] for x in num)), np.array([lable[x] for x in num]))
     imgw = 255 - img
     cv2.imwrite("img.jpg", imgw)
     img = np.multiply(img, 1 / 255.0)
@@ -105,7 +103,7 @@ def predict(img):
 
     line = ''
     for i in range(prob.shape[0]):
-        line += str(np.argmax(prob[i]))
+        line += str(np.argmax(prob[i]) if int(np.argmax(prob[i]))!=10 else 'x')
     return line
 
 

@@ -30,6 +30,16 @@ def read_data(label_url, image_url):
     return (label, image)
 
 
+def Get_image_lable(img, lable):
+    x = [random.randint(0, 9) for x in range(3)]
+    black = np.zeros((28, 28), dtype='uint8')
+    for i in range(3):
+        if x[i] == 0:
+            img[:, i * 28:(i + 1) * 28] = black
+            lable[i] = 10
+    return img, lable
+
+
 class OCRBatch(object):
     def __init__(self, data_names, data, label_names, label):
         self.data = data
@@ -67,10 +77,11 @@ class OCRIter(mx.io.DataIter):
             for i in range(self.batch_size):
                 num = [random.randint(0, self.count - 1)
                        for i in range(self.num_label)]
-                img = np.multiply(
-                    np.hstack((self.image[x] for x in num)), 1 / 255.0)
+                img, lab = Get_image_lable(np.hstack(
+                    (self.image[x] for x in num)), np.array([self.lable[x] for x in num]))
+                img = np.multiply(img, 1 / 255.0)
                 data.append(img.reshape(1, self.height, self.width))
-                label.append(np.array([self.lable[x] for x in num]))
+                label.append(lab)
 
             data_all = [mx.nd.array(data)]
             label_all = [mx.nd.array(label)]
@@ -109,9 +120,9 @@ def get_ocrnet():
 
     flatten = mx.symbol.Flatten(data=relu4)
     fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=256)
-    fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
-    fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
-    fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=10)
+    fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
     label = mx.symbol.transpose(data=label)
     label = mx.symbol.Reshape(data=label, target_shape=(0, ))
