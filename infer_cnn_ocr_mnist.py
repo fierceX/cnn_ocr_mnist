@@ -69,7 +69,7 @@ def ReadImage():
 
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 1)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-mnist", 2)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())

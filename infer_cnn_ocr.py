@@ -34,20 +34,44 @@ def get_ocrnet():
     fc24 = mx.symbol.FullyConnected(data = fc1, num_hidden = 10)
     fc2 = mx.symbol.Concat(*[fc21, fc22, fc23, fc24], dim = 0)
 
-    return mx.symbol.SoftmaxOutput(data = fc2, name = "softmax")
+    softmax = mx.symbol.SoftmaxOutput(data = fc2, name = "softmax")
+
+    out = mx.symbol.Group([softmax, conv1, conv2, conv3, conv4])
+    return out
 
 def predict(img):
     _, arg_params, aux_params = mx.model.load_checkpoint("cnn-orc", 2)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
-    mod.bind(data_shapes=[('data', (1, 1, 30, 100))])
+    mod.bind(data_shapes=[('data', (1, 3, 30, 100))])
     mod.set_params(arg_params, aux_params)
 
     Batch = namedtuple('Batch', ['data'])
     mod.forward(Batch([mx.nd.array(img)]))
     out = mod.get_outputs()
     prob = out[0].asnumpy()
+
+    for n in range(4):
+        cnnout = out[n + 1].asnumpy()
+        width = int(np.shape(cnnout[0])[1])
+        height = int(np.shape(cnnout[0])[2])
+        cimg = np.zeros((width * 8 + 80, height * 4 + 40), dtype=float)
+        cimg = cimg + 255
+        k = 0
+        for i in range(4):
+            for j in range(8):
+                cg = cnnout[0][k]
+                cg = cg.reshape(width, height)
+                cg = np.multiply(cg, 255)
+                k = k + 1
+                gm = np.ones((width + 10, height + 10), dtype=float)
+                gm = gm + 255
+                gm[0:width, 0:height] = cg
+                cimg[j * (width + 10):(j + 1) * (width + 10), i *
+                     (height + 10):(i + 1) * (height + 10)] = gm
+        cv2.imwrite("c" + str(n) + ".jpg", cimg)
+
 
     line = ''
     for i in range(prob.shape[0]):
@@ -61,14 +85,17 @@ def GetImage(captcha,num_label,shape=(100,30)):
     img = np.fromstring(img.getvalue(), dtype='uint8')
     img = cv2.imdecode(img,cv2.IMREAD_COLOR)
     img = cv2.resize(img,shape)
+    cv2.imwrite('img.jpg',img)
     img = np.multiply(img,1/255.0)
     img = img.transpose(2,0,1)
+    img = img.reshape(1,3,30,100)
 
     return img
-
+def GetCaptcha(fontname):
+    return ImageCaptcha(fonts=[fontname])
 
 if __name__ == '__main__':
-    captcha = ImageCaptcha(fonts=['./Ubuntu-M.ttf'])
-    img = GetImage(captcha,4)
+    #captcha = ImageCaptcha(fonts=['./Ubuntu-M.ttf'])
+    img = GetImage(GetCaptcha('Ubuntu-M.ttf'),4)
     line = predict(img)
     print 'predicted: ' + line

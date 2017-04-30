@@ -126,13 +126,19 @@ def Accuracy(label, pred):
 
 if __name__ == '__main__':
     network = get_ocrnet()
+
+    shape = {"data": (8, 3, 30, 100), "softmax_label": (8, 4)}
+
+    g = mx.viz.plot_network(network, shape=shape)
+    g.render(filename='ocr_net', cleanup=True)
+
     devs = [mx.cpu(i) for i in range(1)]
 
-    #_, arg_params, __ = mx.model.load_checkpoint("cnn-orc", 1)
+    _, arg_params, __ = mx.model.load_checkpoint("cnn-orc", 2)
 
     model = mx.mod.Module(network, context=devs)
 
-    batch_size = 16 
+    batch_size = 8
     data_train = OCRIter(100000, batch_size, 4, 30, 100)
     data_test = OCRIter(1000, batch_size, 4, 30, 100)
 
@@ -140,10 +146,11 @@ if __name__ == '__main__':
         data_train,
         eval_data=data_test,
         num_epoch=1,
+        arg_params=arg_params,
         optimizer='sgd',
         eval_metric=Accuracy,
         initializer=mx.init.Xavier(factor_type="in", magnitude=2.34),
         optimizer_params={'learning_rate': 0.001, 'wd': 0.00001},
         batch_end_callback=mx.callback.Speedometer(batch_size, 50),
     )
-    model.save_checkpoint(prefix="cnn-orc", epoch=2)
+    model.save_checkpoint(prefix="cnn-orc", epoch=3)
