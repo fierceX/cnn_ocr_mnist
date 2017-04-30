@@ -1,9 +1,43 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
 <head>
-<title>WOW</title>
+    <title>基于深度学习的数字序列识别演示网页</title>
 </head>
+<style>
+    img {
+        position: relative;
+    }
+    
+    inut {
+        position: relative;
+        top: 50px;
+    }
+    
+    result {
+        position: relative;
+        top: 50px;
+    }
+</style>
 <html>
-<p>Handwritten numeral recognition based on convolutional neural network </p>
-<form name="input" action="cgi-bin/post.py" method="post">
-<input type="submit" value="Button">
-</form>
+
+<body>
+    <h1 align="center">基于深度学习的数字序列识别演示网页</h1>
+    <div id="main" align="center">
+        <h3 id="input">输入的图像</h3>
+        <img id="img" src="img.jpg" width="30%" height="30%" />
+        <p id="result"></p>
+        <form name="input" action="cgi-bin/post.py" method="get">
+            <input type="radio" name="mnist" value="mnist" /> 手写数字
+            <input type="radio" name="mnist" value="captcha" checked /> 验证码
+            <input type="submit" value="下一个">
+        </form>
+
+    </div>
+    <script>
+        var x = url = location.href.toString()
+        document.getElementById("result").innerHTML = "识别的结果为：<h1>" + x.split('?')[1] + "</h1>"
+    </script>
+</body>
+
 </html>

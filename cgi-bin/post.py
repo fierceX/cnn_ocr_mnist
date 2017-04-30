@@ -1,28 +1,24 @@
 # coding:utf-8
-import cgi
+import cgi,cgitb
 form = cgi.FieldStorage()
 import sys
 sys.path.append("..")
-from cnn_ocr_mnist.infer_cnn_ocr_mnist import predict, SetImage
+from cnn_ocr_mnist.infer_cnn_ocr_mnist import predict as premnist
+from cnn_ocr_mnist.infer_cnn_ocr_mnist import SetImage
+from cnn_ocr_mnist.infer_cnn_ocr import predict as percap
+from cnn_ocr_mnist.infer_cnn_ocr import GetCaptcha,GetImage
 
 # Output to stdout, CGIHttpServer will take this as response to the client
 print "Content-Type: text/html"     # HTML is following
-print                               # blank line, end of headers
+
 # Start of content
-print "<body bgcolor=\"#F5F5DC\">"
-print "<p>Handwritten numeral recognition based on convolutional neural network </p>"
-print '''
-<p> input image </p>
-<IMG src="../img.jpg"/>
-<form name="input" action="post.py" method="post">
-<br>
-<input type="submit" value="Next">
-<br>
-'''
-print "<p> Results in : " + repr(predict(SetImage())) + "</p>"
+form = cgi.FieldStorage()
 
-for i in range(4):
-    print "<p> convolutional " + str(i) + " layer :</p>"
-    print "<IMG src=\"../c" + str(i) + ".jpg\"/><br>"
+site = form.getvalue('mnist')
 
-print "</body>"
+line=''
+if site == 'mnist':
+    line = premnist(SetImage())
+if site == 'captcha':
+    line = percap(GetImage(GetCaptcha('../Ubuntu-M.ttf'),4))
+print '<meta http-equiv="Refresh" content="0;URL=../index.html?'+str(line)+'">'
