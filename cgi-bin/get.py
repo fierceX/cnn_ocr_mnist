@@ -8,10 +8,10 @@ from cnn_ocr_mnist.infer_cnn_ocr_mnist import SetImage
 from cnn_ocr_mnist.infer_cnn_ocr import predict as percap
 from cnn_ocr_mnist.infer_cnn_ocr import GetCaptcha,GetImage
 
-# Output to stdout, CGIHttpServer will take this as response to the client
-print "Content-Type: text/html"     # HTML is following
 
-# Start of content
+print "Content-Type: text/html"
+
+print 
 form = cgi.FieldStorage()
 
 site = form.getvalue('mnist')

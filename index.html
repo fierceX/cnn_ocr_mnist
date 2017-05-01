@@ -5,18 +5,35 @@
     <title>基于深度学习的数字序列识别演示网页</title>
 </head>
 <style>
-    img {
+    body{
+        background-color: #FFF8DC;
+    }
+    #img {
         position: relative;
+        top: 20px;
     }
     
-    inut {
+    #inputtext {
         position: relative;
-        top: 50px;
+        top: 5px;
+        font-size: 20px;
     }
     
-    result {
+    #result {
         position: relative;
-        top: 50px;
+        font-size:100px;
+        font-family: 微软雅黑;
+        color: red;
+        top: -20px;
+    }
+    #resulttext{
+        position: relative;
+        font-size:20px;
+        top: 30px;
+    }
+    #form{
+        position: relative;
+        top: -50px;
     }
 </style>
 <html>
@@ -24,10 +41,11 @@
 <body>
     <h1 align="center">基于深度学习的数字序列识别演示网页</h1>
     <div id="main" align="center">
-        <h3 id="input">输入的图像</h3>
+        <p id="inputtext">输入的图像</p>
         <img id="img" src="img.jpg" width="30%" height="30%" />
-        <p id="result"></p>
-        <form name="input" action="cgi-bin/post.py" method="get">
+        <p id="resulttext">识别的结果</p>
+        <p id="result" ></p>
+        <form id="form" name="input" action="cgi-bin/get.py" method="get">
             <input type="radio" name="mnist" value="mnist" /> 手写数字
             <input type="radio" name="mnist" value="captcha" checked /> 验证码
             <input type="submit" value="下一个">
@@ -36,7 +54,7 @@
     </div>
     <script>
         var x = url = location.href.toString()
-        document.getElementById("result").innerHTML = "识别的结果为：<h1>" + x.split('?')[1] + "</h1>"
+        document.getElementById("result").innerHTML = x.split('?')[1]
     </script>
 </body>
 
