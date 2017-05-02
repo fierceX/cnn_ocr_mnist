@@ -5,12 +5,13 @@
     <title>基于深度学习的数字序列识别演示网页</title>
 </head>
 <style>
-    body{
-        background-color: #FFF8DC;
+    body {
+        background-color: #F0F8FF;
     }
+    
     #img {
         position: relative;
-        top: 20px;
+        top: 25px;
     }
     
     #inputtext {
@@ -21,36 +22,65 @@
     
     #result {
         position: relative;
-        font-size:100px;
+        font-size: 100px;
         font-family: 微软雅黑;
         color: red;
         top: -20px;
     }
-    #resulttext{
+    
+    #resulttext {
         position: relative;
-        font-size:20px;
+        font-size: 90px;
         top: 30px;
     }
-    #form{
+    
+    #form {
         position: relative;
-        top: -50px;
+        top: 50px;
+    }
+    
+    #heard {
+        position: relative;
+        height: 100px;
+        width: 1024px;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: #63B8FF;
+        box-shadow: 10px 10px 5px #888888;
+        top: -20px;
+    }
+    
+    #title {
+        position: relative;
+        top: 17px;
+        font-size: 40px
+    }
+    
+    #main {
+        position: relative;
+        width: 1024px;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: #FFD39B;
+        box-shadow: 10px 10px 5px #888888;
+        top: 0px;
     }
 </style>
 <html>
 
 <body>
-    <h1 align="center">基于深度学习的数字序列识别演示网页</h1>
+    <div id="heard">
+        <p id="title" align="center">基于深度学习的数字序列识别演示网页</p>
+    </div>
     <div id="main" align="center">
-        <p id="inputtext">输入的图像</p>
-        <img id="img" src="img.jpg" width="30%" height="30%" />
-        <p id="resulttext">识别的结果</p>
-        <p id="result" ></p>
         <form id="form" name="input" action="cgi-bin/get.py" method="get">
             <input type="radio" name="mnist" value="mnist" /> 手写数字
             <input type="radio" name="mnist" value="captcha" checked /> 验证码
-            <input type="submit" value="下一个">
+            <br>
+            <input id="img" type="image" src="img.jpg" width="30%" height="30%" />
         </form>
-
+        <p id="resulttext">&#8595;</p>
+        <p id="result"></p>
     </div>
     <script>
         var x = url = location.href.toString()

@@ -40,7 +40,7 @@ def get_ocrnet():
     return out
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-orc", 2)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr", 7)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())

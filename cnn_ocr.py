@@ -134,7 +134,7 @@ if __name__ == '__main__':
 
     devs = [mx.cpu(i) for i in range(1)]
 
-    _, arg_params, __ = mx.model.load_checkpoint("cnn-orc", 2)
+    _, arg_params, __ = mx.model.load_checkpoint("cnn-ocr", 6)
 
     model = mx.mod.Module(network, context=devs)
 
@@ -145,12 +145,14 @@ if __name__ == '__main__':
     model.fit(
         data_train,
         eval_data=data_test,
-        num_epoch=1,
+        begin_epoch=6,
+        num_epoch=8,
         arg_params=arg_params,
         optimizer='sgd',
         eval_metric=Accuracy,
         initializer=mx.init.Xavier(factor_type="in", magnitude=2.34),
         optimizer_params={'learning_rate': 0.001, 'wd': 0.00001},
         batch_end_callback=mx.callback.Speedometer(batch_size, 50),
+        epoch_end_callback=mx.callback.do_checkpoint("cnn-ocr")
     )
-    model.save_checkpoint(prefix="cnn-orc", epoch=3)
+    #model.save_checkpoint(prefix="cnn-orc", epoch=3)
