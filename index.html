@@ -76,6 +76,7 @@
         <form id="form" name="input" action="cgi-bin/get.py" method="get">
             <input type="radio" name="mnist" value="mnist" /> 手写数字
             <input type="radio" name="mnist" value="captcha" checked /> 验证码
+            <input type="radio" name="mnist" value="plate" checked /> 车牌
             <br>
             <input id="img" type="image" src="img.jpg" width="30%" height="30%" />
         </form>
@@ -84,7 +85,8 @@
     </div>
     <script>
         var x = url = location.href.toString()
-        document.getElementById("result").innerHTML = x.split('?')[1]
+        var s = x.split('?')[1]
+        document.getElementById("result").innerHTML = s
     </script>
 </body>
 
