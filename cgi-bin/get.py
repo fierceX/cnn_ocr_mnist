@@ -24,5 +24,5 @@ if site == 'captcha':
     line = percap(GetImage(GetCaptcha('../Ubuntu-M.ttf'),4))
 if site == 'plate':
     line = predicted(RandImg())
-    line = line.encode('gbk')
-print '<meta http-equiv="Refresh" content="0;URL=../index.html?'+str(line)+'">'
+    line = line.encode('utf-8')
+print '<meta charset="utf-8" http-equiv="Refresh" content="0;URL=../index.html?'+str(line)+'">'

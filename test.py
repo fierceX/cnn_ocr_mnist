@@ -90,7 +90,7 @@ def TestRecognizeOne(img):
         if i >  1:
             result =  np.argmax(probs[i][31:65])+31
 
-        line += chars[result] + ' '
+        line += chars[result]
     print 'predicted: ' + line
     cv2.waitKey(0)
 
@@ -101,7 +101,7 @@ def predicted(img):
     img = np.swapaxes(img,1,2)
     img = img.reshape(1,3,30,120)
     batch_size = 1
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-plate", 49)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-plate", 79)
     net = getnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
@@ -142,7 +142,7 @@ def predicted(img):
         if i >  1:
             result =  np.argmax(prob[i][31:65])+31
 
-        line += chars[result] + ' '
+        line += chars[result]
     return line
 
 def RandImg():
