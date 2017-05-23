@@ -1,13 +1,12 @@
+#!/usr/bin/env python
 # coding:utf-8
 import cgi,cgitb
 form = cgi.FieldStorage()
 import sys
 sys.path.append("..")
-from cnn_ocr_mnist.infer_cnn_ocr_mnist import predict as premnist
-from cnn_ocr_mnist.infer_cnn_ocr_mnist import SetImage
-from cnn_ocr_mnist.infer_cnn_ocr import predict as percap
-from cnn_ocr_mnist.infer_cnn_ocr import GetCaptcha,GetImage
-from cnn_ocr_mnist.test import RandImg,predicted
+from cnn_ocr_mnist.infer_mnist import GetMnistPredict
+from cnn_ocr_mnist.infer_captcha import GetCaptchaPredict
+from cnn_ocr_mnist.infer_plate import GetPlatePredict
 
 
 print "Content-Type: text/html"
@@ -18,11 +17,11 @@ form = cgi.FieldStorage()
 site = form.getvalue('mnist')
 
 line=''
+
 if site == 'mnist':
-    line = premnist(SetImage())
+    line = GetMnistPredict()
 if site == 'captcha':
-    line = percap(GetImage(GetCaptcha('../Ubuntu-M.ttf'),4))
+    line = GetCaptchaPredict()
 if site == 'plate':
-    line = predicted(RandImg())
-    line = line.encode('utf-8')
+    line = GetPlatePredict()
 print '<meta charset="utf-8" http-equiv="Refresh" content="0;URL=../index.html?'+str(line)+'">'

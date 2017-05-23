@@ -70,7 +70,7 @@ def TestRecognizeOne(img):
     img = np.swapaxes(img,1,2)
     print img.shape
     batch_size = 1
-    _, arg_params, __ = mx.model.load_checkpoint("cnn-ocr-plate", 49)
+    _, arg_params, __ = mx.model.load_checkpoint("./plate/cnn-ocr-plate", 95)
     data_shape = [("data", (batch_size, 3, 30, 120))]
     input_shapes = dict(data_shape)
     sym = getnet()
@@ -94,14 +94,14 @@ def TestRecognizeOne(img):
     print 'predicted: ' + line
     cv2.waitKey(0)
 
-def predicted(img):
+def predict(img):
 
     img = cv2.resize(img,(120,30))
     img = np.swapaxes(img,0,2)
     img = np.swapaxes(img,1,2)
     img = img.reshape(1,3,30,120)
     batch_size = 1
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-plate", 1026)
+    _, arg_params, aux_params = mx.model.load_checkpoint("./plate/cnn-ocr-plate", 95)
     net = getnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
@@ -149,6 +149,12 @@ def RandImg():
     genplate = GenPlate("./font/platech.ttf",'./font/platechar.ttf','./NoPlates')
     img = getimage(genplate)
     return img
+
+def GetPlatePredict():
+    img = RandImg()
+    line = predict(img)
+    line = line.encode('utf-8')
+    return line
 
 if __name__ == '__main__':
     genplate = GenPlate("./font/platech.ttf",'./font/platechar.ttf','./NoPlates')
