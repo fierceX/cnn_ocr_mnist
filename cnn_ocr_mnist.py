@@ -97,6 +97,7 @@ class OCRIter(mx.io.DataIter):
 def get_ocrnet():
     data = mx.symbol.Variable('data')
     label = mx.symbol.Variable('softmax_label')
+
     conv1 = mx.symbol.Convolution(data=data, kernel=(5, 5), num_filter=32)
     pool1 = mx.symbol.Pooling(
         data=conv1, pool_type="max", kernel=(2, 2), stride=(1, 1))
@@ -107,43 +108,27 @@ def get_ocrnet():
         data=conv2, pool_type="avg", kernel=(2, 2), stride=(1, 1))
     relu2 = mx.symbol.Activation(data=pool2, act_type="relu")
 
-    conv3 = mx.symbol.Convolution(data=relu2, kernel=(3, 3), num_filter=64)
+    conv3 = mx.symbol.Convolution(data=relu2, kernel=(3, 3), num_filter=32)
     pool3 = mx.symbol.Pooling(
         data=conv3, pool_type="avg", kernel=(2, 2), stride=(1, 1))
     relu3 = mx.symbol.Activation(data=pool3, act_type="relu")
 
-    conv4 = mx.symbol.Convolution(data=relu3, kernel=(3, 3), num_filter=96)
+    conv4 = mx.symbol.Convolution(data=relu3, kernel=(3, 3), num_filter=32)
     pool4 = mx.symbol.Pooling(
         data=conv4, pool_type="avg", kernel=(2, 2), stride=(1, 1))
     relu4 = mx.symbol.Activation(data=pool4, act_type="relu")
 
     flatten = mx.symbol.Flatten(data=relu4)
     fc1 = mx.symbol.FullyConnected(data=flatten, num_hidden=256)
-    #fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
-    #fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
-    #fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
-    #fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
-    label = mx.symbol.transpose(data=label)
-    label = mx.symbol.reshape(data=label, shape=(-1, ))
-    label = mx.symbol.split(data=label,axis=0,num_outputs=3)
-    '''
-    label1 = mx.symbol.transpose(data=label[0])
-    label1 = mx.symbol.reshape(data=label1, shape=(-1, )
+    fc21 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc22 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc23 = mx.symbol.FullyConnected(data=fc1, num_hidden=11)
+    fc2 = mx.symbol.Concat(*[fc21, fc22, fc23], dim=0)
 
-    label2 = mx.symbol.transpose(data=label[1])
-    label2 = mx.symbol.reshape(data=label2, shape=(-1, ))
+    label = mx.symbol.transpose(data = label)
+    label = mx.symbol.reshape(data = label, shape = (-1, ))
 
-    label3 = mx.symbol.transpose(data=label[2])
-    label3 = mx.symbol.reshape(data=label3, shape=(-1,))
-    '''
-    softmax1 = mx.symbol.SoftmaxOutput(data=fc1, label=label[0],name="softmax1")
-    softmax2 = mx.symbol.SoftmaxOutput(data=fc1, label=label[1],name="softmax2")
-    softmax3 = mx.symbol.SoftmaxOutput(data=fc1, label=label[2],name="softmax3")
-    
-
-    out = mx.symbol.Concat(*[softmax1,softmax2,softmax3],dim=0)
-    return out
-    # return mx.symbol.SoftmaxOutput(data=fc2, label=label, name="softmax")
+    return mx.symbol.SoftmaxOutput(data=fc2, label=label, name="softmax")
 
 def Accuracy(label, pred):
     label = label.T.reshape((-1, ))
@@ -160,8 +145,6 @@ def Accuracy(label, pred):
             hit += 1
         total += 1
     return 1.0 * hit / total
-    
-    return 100
 
 
 if __name__ == '__main__':
@@ -172,7 +155,7 @@ if __name__ == '__main__':
 
     devs = [mx.cpu(i) for i in range(1)]
 
-    #_, arg_params, __ = mx.model.load_checkpoint("cnn-ocr-mnist", 1)
+    _, arg_params, __ = mx.model.load_checkpoint("cnn-ocr-mnist", 2)
 
     model = mx.mod.Module(network, context=devs)
 
@@ -181,7 +164,7 @@ if __name__ == '__main__':
     (test_lable, test_image) = read_data(
         't10k-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz')
 
-    batch_size = 16
+    batch_size = 32
     data_train = OCRIter(60000, batch_size, 3, 28,
                          84, train_lable, train_image)
     data_test = OCRIter(5000, batch_size, 3, 28, 84, test_lable, test_image)
@@ -189,13 +172,14 @@ if __name__ == '__main__':
     model.fit(
         data_train,
         eval_data=data_test,
-        num_epoch=6,
+        begin_epoch=2,
+        num_epoch=12,
         optimizer='sgd',
         eval_metric=Accuracy,
-        # arg_params=arg_params,
+        arg_params=arg_params,
         initializer=mx.init.Xavier(factor_type="in", magnitude=2.34),
         optimizer_params={'learning_rate': 0.001, 'wd': 0.00001},
         batch_end_callback=mx.callback.Speedometer(batch_size, 50),
-        eval_end_callback=mx.callback.do_checkpoint("cnn-ocr-mnist")
+        epoch_end_callback=mx.callback.do_checkpoint("cnn-ocr-mnist")
     )
     #model.save_checkpoint(prefix="cnn-ocr-mnist", epoch=6)

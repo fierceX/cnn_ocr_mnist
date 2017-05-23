@@ -101,7 +101,7 @@ def predicted(img):
     img = np.swapaxes(img,1,2)
     img = img.reshape(1,3,30,120)
     batch_size = 1
-    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-plate", 79)
+    _, arg_params, aux_params = mx.model.load_checkpoint("cnn-ocr-plate", 1026)
     net = getnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())

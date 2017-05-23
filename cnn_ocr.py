@@ -134,19 +134,19 @@ if __name__ == '__main__':
 
     devs = [mx.cpu(i) for i in range(1)]
 
-    _, arg_params, __ = mx.model.load_checkpoint("cnn-ocr", 6)
+    _, arg_params, __ = mx.model.load_checkpoint("cnn-ocr", 8)
 
     model = mx.mod.Module(network, context=devs)
 
-    batch_size = 8
+    batch_size = 32
     data_train = OCRIter(100000, batch_size, 4, 30, 100)
     data_test = OCRIter(1000, batch_size, 4, 30, 100)
 
     model.fit(
         data_train,
         eval_data=data_test,
-        begin_epoch=6,
-        num_epoch=8,
+        begin_epoch=8,
+        num_epoch=12,
         arg_params=arg_params,
         optimizer='sgd',
         eval_metric=Accuracy,
