@@ -10,7 +10,6 @@ import os
 from io import BytesIO
 from collections import namedtuple
 from genplate import *
-#from train import gen_rand, gen_sample
 chars = [u"京", u"沪", u"津", u"渝", u"冀", u"晋", u"蒙", u"辽", u"吉", u"黑", u"苏", u"浙", u"皖", u"闽", u"赣", u"鲁", u"豫", u"鄂", u"湘", u"粤", u"桂",
              u"琼", u"川", u"贵", u"云", u"藏", u"陕", u"甘", u"青", u"宁", u"新", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A",
              "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
@@ -58,42 +57,6 @@ def getnet():
     out = mx.symbol.Group([softmax, conv1, conv2, conv3, conv4])
     return out
 
-
-
-def TestRecognizeOne(img):
-    cv2.imshow("img",img)
-    img = cv2.resize(img,(120,30))
-    
-
-    print img.shape
-    img = np.swapaxes(img,0,2)
-    img = np.swapaxes(img,1,2)
-    print img.shape
-    batch_size = 1
-    _, arg_params, __ = mx.model.load_checkpoint("./plate/cnn-ocr-plate", 95)
-    data_shape = [("data", (batch_size, 3, 30, 120))]
-    input_shapes = dict(data_shape)
-    sym = getnet()
-    executor = sym.simple_bind(ctx = mx.cpu(), **input_shapes)
-    for key in executor.arg_dict.keys():
-        if key in arg_params:
-            arg_params[key].copyto(executor.arg_dict[key])
-
-    executor.forward(is_train = True, data = mx.nd.array([img]))
-    probs = executor.outputs[0].asnumpy()
-    line = u''
-    for i in range(probs.shape[0]):
-        if i == 0:
-            result =  np.argmax(probs[i][0:31])
-        if i == 1:
-            result =  np.argmax(probs[i][41:65])+41
-        if i >  1:
-            result =  np.argmax(probs[i][31:65])+31
-
-        line += chars[result]
-    print 'predicted: ' + line
-    cv2.waitKey(0)
-
 def predict(img):
 
     img = cv2.resize(img,(120,30))
@@ -101,12 +64,11 @@ def predict(img):
     img = np.swapaxes(img,1,2)
     img = img.reshape(1,3,30,120)
     batch_size = 1
-    _, arg_params, aux_params = mx.model.load_checkpoint("./plate/cnn-ocr-plate", 95)
     net = getnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
     mod.bind(data_shapes=[('data', (batch_size, 3, 30, 120))])
-    mod.set_params(arg_params, aux_params)
+    mod.load_params("./plate/cnn-ocr-plate-0095.params")
 
     Batch = namedtuple('Batch', ['data'])
     mod.forward(Batch([mx.nd.array(img)]))
@@ -157,6 +119,7 @@ def GetPlatePredict():
     return line
 
 if __name__ == '__main__':
-    genplate = GenPlate("./font/platech.ttf",'./font/platechar.ttf','./NoPlates')
-    img = getimage(genplate)
-    TestRecognizeOne(img)
+    img = RandImg()
+    cv2.imshow("img",img)
+    print predict(img)
+    cv2.waitKey(0)

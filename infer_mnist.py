@@ -4,7 +4,7 @@ import cv2
 import random
 from io import BytesIO
 from collections import namedtuple
-from cnn_ocr_mnist import read_data, Get_image_lable
+from train_mnist import read_data, Get_image_lable
 import random
 
 
@@ -55,7 +55,7 @@ def SetImage():
     cv2.imwrite("img.jpg", imgw)
     img = np.multiply(img, 1 / 255.0)
     img = img.reshape(1, 1, 28, 84)
-    return img
+    return img,imgw
 
 
 def ReadImage():
@@ -69,12 +69,11 @@ def ReadImage():
 
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("./mnist/cnn-ocr-mnist", 10)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
     mod.bind(data_shapes=[('data', (1, 1, 28, 84))])
-    mod.set_params(arg_params, aux_params)
+    mod.load_params("./mnist/cnn-ocr-mnist-0012.params")
 
     Batch = namedtuple('Batch', ['data'])
     mod.forward(Batch([mx.nd.array(img)]))
@@ -107,11 +106,13 @@ def predict(img):
                     if int(np.argmax(prob[i])) != 10 else ' ')
     return line
 def GetMnistPredict():
-    img = SetImage()
+    img,_ = SetImage()
     line = predict(img)
     return line
 
 if __name__ == '__main__':
-    img = SetImage()
+    img,imgs = SetImage()
+    cv2.imshow("img",imgs)
     line = predict(img)
     print 'predicted: ' + line
+    cv2.waitKey(0)

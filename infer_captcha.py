@@ -40,12 +40,11 @@ def get_ocrnet():
     return out
 
 def predict(img):
-    _, arg_params, aux_params = mx.model.load_checkpoint("./captcha/cnn-ocr-captcha", 12)
     net = get_ocrnet()
 
     mod = mx.mod.Module(symbol=net, context=mx.cpu())
     mod.bind(data_shapes=[('data', (1, 3, 30, 100))])
-    mod.set_params(arg_params, aux_params)
+    mod.load_params("./captcha/cnn-ocr-captcha-0012.params")
 
     Batch = namedtuple('Batch', ['data'])
     mod.forward(Batch([mx.nd.array(img)]))
@@ -91,17 +90,19 @@ def GetImage(captcha,num_label,shape=(100,30)):
     img = img.transpose(2,0,1)
     img = img.reshape(1,3,30,100)
 
-    return img
+    return img,imgg
 def GetCaptcha(fontname):
     return ImageCaptcha(fonts=[fontname])
 
 def GetCaptchaPredict():
-    img = GetImage(GetCaptcha('Ubuntu-M.ttf'),4)
+    img,_ = GetImage(GetCaptcha('Ubuntu-M.ttf'),4)
     line = predict(img)
     return line
 
 if __name__ == '__main__':
     #captcha = ImageCaptcha(fonts=['./Ubuntu-M.ttf'])
-    img = GetImage(GetCaptcha('Ubuntu-M.ttf'),4)
+    img,imgs = GetImage(GetCaptcha('Ubuntu-M.ttf'),4)
+    cv2.imshow("img",imgs)
     line = predict(img)
     print 'predicted: ' + line
+    cv2.waitKey(0)
