@@ -42,7 +42,7 @@ class OCRIter():
         self.num_label = num_label
 
     def __iter__(self):
-        for k in range(self.count / self.batch_size):
+        for k in range(int(self.count / self.batch_size)):
             data = []
             label = []
             for i in range(self.batch_size):
@@ -59,18 +59,8 @@ class OCRIter():
             yield data_all,label_all
 
 def Accuracy(label, pred):
-    label = label.T.reshape((-1, ))
-    hit = 0
-    
-    for i in range(pred.shape[0] / 3):
-        ok = True
-        for j in range(3):
-            k = i * 3 + j
-            if np.argmax(pred[k]) != int(label[k]):
-                ok = False
-        if ok:
-            hit += 1
-    return hit
+    out = np.argmax(pred,axis=2)
+    return np.mean(out==label)
 
 
 class Cont(nn.HybridBlock):
@@ -81,7 +71,7 @@ class Cont(nn.HybridBlock):
             self.dese1 = nn.Dense(11)
             self.dese2 = nn.Dense(11)
     def hybrid_forward(self,F,X):
-        return F.concat(*[self.dese0(X),self.dese1(X),self.dese2(X)],dim=0)
+        return F.concat(*[F.expand_dims(self.dese0(X),axis=1),F.expand_dims(self.dese1(X),axis=1),F.expand_dims(self.dese2(X),axis=1)],dim=1)
 
 def GetNet():
     net = nn.HybridSequential()
@@ -106,8 +96,8 @@ def GetNet():
 if __name__ == '__main__':
 
     net = GetNet()
-    #net.initialize(mx.init.Xavier(factor_type="in", magnitude=2.34),ctx=mx.gpu())
-    net.load_params("cnn_mnist_gluon",ctx=mx.gpu())
+    net.initialize(mx.init.Xavier(factor_type="in", magnitude=2.34),ctx=mx.gpu())
+    # net.load_params("cnn_mnist_gluon",ctx=mx.gpu())
     softmax_cross_entropy = gluon.loss.SoftmaxCrossEntropyLoss()
     #trainer = gluon.Trainer(net.collect_params(), 'sgd', {'learning_rate': 0.001,'wd': 0.0001,'momentum':0.9})
     trainer = gluon.Trainer(net.collect_params(), 'Adam', {'learning_rate': 0.001})
@@ -123,21 +113,19 @@ if __name__ == '__main__':
 
     from mxnet import autograd as autograd
 
-    for epoch in range(500):
+    for epoch in range(5):
         train_loss = 0.
         train_acc = 0.
         for data,label in data_train:
-            labell = nd.transpose(label)
-            labell = nd.reshape(labell,(-1,))
             with autograd.record():
                 output = net(data)
-                loss = softmax_cross_entropy(output,labell)
+                loss = softmax_cross_entropy(output,label)
             loss.backward()
             trainer.step(batch_size)
-            
+
             train_acc += Accuracy(label.asnumpy(),output.asnumpy())
             train_loss += nd.mean(loss).asscalar()
         print("Epoch %d. Loss: %f, Train acc %f" % (
-                epoch, train_loss/1280, train_acc/1280))
+                epoch, train_loss/1280, train_acc/(1280/64)))
 
     net.save_params("cnn_mnist_gluon")
